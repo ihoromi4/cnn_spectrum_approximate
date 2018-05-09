@@ -232,12 +232,24 @@ def compile_model(model):
 
 
 def train_model(model, generator):
-    model.fit_generator(
+    return model.fit_generator(
         generator,
         steps_per_epoch=steps_per_epoch,
         epochs=epochs,
         validation_data=generator,
         validation_steps=4)
+
+
+def save_train_history(history, file_name):
+    name, ext = os.path.splitext(__file__)
+    MODELS_DIR = 'history_' + name
+
+    if not os.path.isdir(MODELS_DIR):
+        os.makedirs(MODELS_DIR)
+
+    file_path = os.path.join(MODELS_DIR, file_name + '.json')
+    with open(file_path, 'w') as f:
+        json.dump(history.history, f)
 
 
 def save_model(model):
@@ -331,7 +343,14 @@ def main():
     generator = specturm_generator(batch_size)
 
     try:
-        train_model(model, generator)
+        history = train_model(model, generator)
+
+        loss = 'adaptive_loss'
+        name = '{loss}_{epochs}_epochs_{batch_size}_batch_size'.format(
+            loss=loss,
+            epochs=epochs,
+            batch_size=batch_size)
+        save_train_history(history, name)
     except KeyboardInterrupt:
         plot_test(model)
 
