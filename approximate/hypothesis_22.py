@@ -18,12 +18,12 @@ examples_amount = 100000
 x_start = 0
 x_end = 50
 x_size = x_end - x_start
-param_min = 3
-param_max = 7
+param_min = 0.3
+param_max = 10
 separation_factor = 0.8
 noise_magnitude = 0.01
 batch_size = 128
-epochs = 30
+epochs = 10000
 
 
 def gaussian(x, mu, sigma=1, scale=1):
@@ -124,11 +124,14 @@ def get_data(data=None):
 
 def create_model():
     input = layers.Input(shape=(x_size, 1))
-    x = layers.Conv1D(32, 5, padding='same')(input)
+    x = layers.Conv1D(64, 5)(input)
     x = layers.Activation('relu')(x)
     x = layers.MaxPooling1D(2)(x)
-    x = layers.Conv1D(32, 5, padding='same')(x)
+    x = layers.Dropout(0.25)(x)
+    x = layers.Conv1D(128, 5)(x)
     x = layers.Activation('relu')(x)
+    x = layers.MaxPooling1D(2)(x)
+    x = layers.Dropout(0.25)(x)
     conv_out = layers.Flatten()(x)
 
     # type
@@ -136,8 +139,13 @@ def create_model():
     output_1 = layers.Activation('softmax')(x)
 
     # x0, a, scale
+    x = layers.Concatenate(axis=-1)([conv_out, output_1])
+    x = layers.Dense(64)(x)
+    x = layers.Activation('tanh')(x)
+    x = layers.Dropout(0.25)(x)
     x = layers.Dense(32)(conv_out)
     x = layers.Activation('tanh')(x)
+    x = layers.Dropout(0.25)(x)
     x = layers.Dense(2)(x)
     output_2 = layers.Activation('relu')(x)
 
@@ -192,7 +200,7 @@ def show_predict(model, y_test, z_test):
         x0 = 1/2 * (x_end - x_start) + x_start
         a, scale = params
         a = param_min + (param_max - param_min) * a
-        scale += 0.001
+        scale = scale or 1.0
 
         print('Prediction:', function.__name__, x0, a, scale)
 
@@ -258,7 +266,8 @@ def load_model_choice():
 def main():
     (y_train, z_train), (y_test, z_test) = get_data()
 
-    model = create_model()
+    #model = create_model()
+    model = load_model_choice()
     model.summary()
 
     compile_model(model)

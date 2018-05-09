@@ -9,8 +9,8 @@ examples_amount = 100
 x_start = 0
 x_end = 300
 x_size = x_end - x_start
-param_min = 3
-param_max = 7
+param_min = 0.3
+param_max = 10
 separation_factor = 0.8
 noise_magnitude = 0.01
 
